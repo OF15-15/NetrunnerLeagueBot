@@ -2,7 +2,6 @@ import discord
 import commands
 import sqlite3
 import json as js
-import data
 
 # private bot-specific token
 with open("token.txt") as f:
