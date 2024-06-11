@@ -42,6 +42,12 @@ def auth_admin(guild, user):
 async def echo(ia, content: str):
     await ia.response.send_message(content)"""
 
+@command("create", "Create a new league", "admin")
+async def create_league(ia, name: str):
+    cursor.execute('''INSERT INTO leagues VALUES (?, ?, ?, ?)''', (None, ia.guild_id, ia.channel_id, name))
+    db.commit()
+    await ia.response.send_message(f"You created league {name} in this channel", ephemeral=True)
+
 
 @command("join", "Join the league in this channel", "everyone")
 async def join(ia):
@@ -60,8 +66,19 @@ async def join(ia):
 
 @command("leave", "Leave the league in this channel", "everyone")
 async def leave(ia):
-    await ia.response.send_message("not implemented yet, please DM OF15-15")
+    cursor.execute('''SELECT league_id, name FROM leagues WHERE channel_id=?''', (ia.channel.id,))
+    league_id, name = cursor.fetchone()[0:2]
+    cursor.execute('''DELETE FROM player_leagues WHERE user_id=? AND league_id=?''', (ia.user.id, league_id))
+    db.commit()
+    await ia.response.send_message(f"You left league {name}", ephemeral=True)
 
+@command("status", "check whether you are currently in this league", "everyone")
+async def status(ia):
+    cursor.execute('''SELECT leagues.name FROM leagues, player_leagues WHERE channel_id=? AND leagues.league_id=player_leagues.league_id AND user_id=?''', (ia.channel_id, ia.user.id))
+    all = cursor.fetchall()
+    if len(all) > 0:
+        await ia.response.send_message(f"You are currently a member of league {all[0][0]}", ephemeral=True)
+    await ia.response.send_message(f"You are no member of a league in this channel", ephemeral=True)
 @command("pair", "pair a new round", "admin")
 async def pair(ia):
     cursor.execute('''SELECT pl.user_id FROM leagues as l, player_leagues as pl WHERE l.channel_id=? and l.league_id=pl.league_id''', (ia.channel.id,))
