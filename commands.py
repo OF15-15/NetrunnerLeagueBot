@@ -47,7 +47,7 @@ async def echo(ia, content: str):
 async def create_league(ia, name: str):
     cursor.execute('''INSERT INTO leagues VALUES (?, ?, ?, ?, ?)''', (None, ia.guild_id, ia.channel_id, name, 0))
     db.commit()
-    await ia.response.send_message(f"You created league {name} in this channel", ephemeral=True)
+    await ia.response.send_message(f"You created league {name} in this channel")
 
 
 @command("join", "Join the league in this channel", "everyone")
@@ -86,7 +86,7 @@ async def standings(ia):
     league_id, current_round = cursor.fetchone()
     cursor.execute('''SELECT pl.user_id FROM player_leagues as pl WHERE pl.league_id=?''', (league_id,))
     players = [p[0] for p in cursor.fetchall()]
-    cursor.execute('''SELECT player1_id, player2_id, player1_won, round FROM matches WHERE league_id=?''', (league_id, ))
+    cursor.execute('''SELECT player1_id, player2_id, result, round FROM matches WHERE league_id=?''', (league_id, ))
     matches = cursor.fetchall()
     db.commit()
     points = {player: 0 for player in players}
@@ -120,19 +120,65 @@ async def standings(ia):
     await ia.response.send_message(msg, ephemeral=True)
 
 
+@command("report", "Report one of your matches", "everyone")
+async def report(ia, opponent: str, your_score: int, opponent_score: int, context: str = None):
+    #results = ["swept", "got swept", "corp split", "runner splity", "id", "won 241", "lost 241", "won->tie", "lost->tie", "tie->tie", "bye"]
+    opponent_id = opponent[2:-1]
+    if your_score == opponent_score == 3:
+        if context == "id":
+            result = 4
+        elif context in ['c', 'corp', 'corp split']:
+            result = 2
+        elif context in ['r', 'runner', 'runner split']:
+            result = 3
+        else:
+            return await ia.response.send_message(f"Please specify whether the result was id, corp split or runner split in the last argument", ephemeral=True)
+    elif your_score == 6 and opponent_score == 0:
+        if context == "241":
+            result = 5
+        else:
+            result = 0
+    elif your_score == 0 and opponent_score == 6:
+        if context == "241":
+            result = 6
+        else:
+            result = 1
+    elif your_score == 4 and opponent_score == 1:
+        result = 7
+    elif your_score == 1 and opponent_score == 4:
+        result = 8
+    else:
+        return await ia.response.send_message(f"I couldn't understand the result.", ephemeral=True)
+    cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
+    league_id, current_round = cursor.fetchone()
+    cursor.execute('''SELECT result, round FROM matches WHERE league_id=? AND (player1_id=? AND player2_id=? OR player1_id=? AND player2_id=?)''',
+                   (league_id, ia.user.id, opponent_id, opponent_id, ia.user.id))
+    data = cursor.fetchall()
+    if len(data) == 0:
+        return await ia.response.send_message(f"You never played against <@{opponent_id}> here", ephemeral=True)
+    data.sort(key=lambda x: x[1], reverse=True)
+    cursor.execute('''UPDATE matches SET result=? WHERE league_id=? AND (player1_id=? AND player2_id=? OR player1_id=? AND player2_id=?) AND round=?''',
+                   (result, league_id, ia.user.id, opponent_id, opponent_id, ia.user.id, data[0][1]))
+    db.commit()
+    if data[0][0] == -1:
+        return await ia.response.send_message(f"You reported {your_score} - {opponent_score} against <@{opponent_id}>", ephemeral=True)
+    return await ia.response.send_message(f"You reported {your_score} - {opponent_score} against <@{opponent_id}>. This score was already reported before.", ephemeral=True)
+
+
+
 @command("pair", "Pair a new round", "admin")
 async def pair(ia):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
     league_id, current_round = cursor.fetchone()
     cursor.execute('''SELECT pl.user_id FROM player_leagues as pl WHERE pl.league_id=?''', (league_id,))
     players = [p[0] for p in cursor.fetchall()]
-    cursor.execute('''SELECT player1_id, player2_id, player1_won, round FROM matches WHERE league_id=?''', (league_id, ))
+    cursor.execute('''SELECT player1_id, player2_id, result, round FROM matches WHERE league_id=?''', (league_id, ))
     matches = cursor.fetchall()
     pairings = dss(players, matches, current_round)
     msg = ""
     for pairing in pairings:
         if pairing[1] == "BYE":
-            msg += pairing[0] + " vs BYE\n"
+            msg += str(pairing[0]) + " vs BYE\n"
         msg += f"{ia.guild.get_member(pairing[1]).mention} vs {ia.guild.get_member(pairing[0]).mention}\n"
     current_round += 1
     cursor.execute("""UPDATE leagues SET current_round=? WHERE league_id=?""", (current_round, league_id))
