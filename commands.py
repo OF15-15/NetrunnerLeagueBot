@@ -6,6 +6,7 @@ import sqlite3
 import functools
 import json as js
 import random as rd
+import mwmatching as mwm
 
 def command(name, description, perms):
     def decorator(func):
@@ -44,7 +45,7 @@ async def echo(ia, content: str):
 
 @command("create", "Create a new league", "admin")
 async def create_league(ia, name: str):
-    cursor.execute('''INSERT INTO leagues VALUES (?, ?, ?, ?)''', (None, ia.guild_id, ia.channel_id, name))
+    cursor.execute('''INSERT INTO leagues VALUES (?, ?, ?, ?, ?)''', (None, ia.guild_id, ia.channel_id, name, 0))
     db.commit()
     await ia.response.send_message(f"You created league {name} in this channel", ephemeral=True)
 
@@ -63,7 +64,6 @@ async def join(ia):
     except:
         print("double join ?!")
 
-
 @command("leave", "Leave the league in this channel", "everyone")
 async def leave(ia):
     cursor.execute('''SELECT league_id, name FROM leagues WHERE channel_id=?''', (ia.channel.id,))
@@ -79,15 +79,116 @@ async def status(ia):
     if len(all) > 0:
         await ia.response.send_message(f"You are currently a member of league {all[0][0]}", ephemeral=True)
     await ia.response.send_message(f"You are no member of a league in this channel", ephemeral=True)
-@command("pair", "pair a new round", "admin")
-async def pair(ia):
-    cursor.execute('''SELECT pl.user_id FROM leagues as l, player_leagues as pl WHERE l.channel_id=? and l.league_id=pl.league_id''', (ia.channel.id,))
+
+@command("standings", "check the current standings", "everyone")
+async def standings(ia):
+    cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
+    league_id, current_round = cursor.fetchone()
+    cursor.execute('''SELECT pl.user_id FROM player_leagues as pl WHERE pl.league_id=?''', (league_id,))
     players = [p[0] for p in cursor.fetchall()]
+    cursor.execute('''SELECT player1_id, player2_id, player1_won, round FROM matches WHERE league_id=?''', (league_id, ))
+    matches = cursor.fetchall()
     db.commit()
-    rd.shuffle(players)
+    points = {}
+
+    for match in matches:
+        # sweep1 sweep2 corp runner id 2411 2412 tie1 tie2 tietie bye
+        if match[3] > current_round - 5:
+            match match[2]:
+                case 0 | 5:
+                    points[match[0]] += 6
+                case 1 | 6:
+                    points[match[1]] += 6
+                case 2 | 3 | 4:
+                    points[match[0]] += 3
+                    points[match[1]] += 3
+                case 7:
+                    points[match[0]] += 4
+                    points[match[1]] += 1
+                case 8:
+                    points[match[0]] += 1
+                    points[match[1]] += 4
+                case 9:
+                    points[match[0]] += 2
+                    points[match[1]] += 2
+                case 10:
+                    points[match[0]] += 6
+    msg = ''
+    players.sort(key=lambda p: points[p])
+    for player in players:
+        msg += f'{ia.guild.get_member(player).mention}: {points[player]}\n'
+    ia.response.send_message(msg, ephemeral=True)
+
+
+@command("pair", "Pair a new round", "admin")
+async def pair(ia):
+    cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
+    league_id, current_round = cursor.fetchone()
+    cursor.execute('''SELECT pl.user_id FROM player_leagues as pl WHERE pl.league_id=?''', (league_id,))
+    players = [p[0] for p in cursor.fetchall()]
+    cursor.execute('''SELECT player1_id, player2_id, player1_won, round FROM matches WHERE league_id=?''', (league_id, ))
+    matches = cursor.fetchall()
+    pairings = dss(players, matches, current_round)
     msg = ""
-    for i in range(0, len(players)-1, 2):
-        msg += f"{ia.guild.get_member(players[i]).mention} vs {ia.guild.get_member(players[i+1]).mention}\n"
-    if len(players)%2 == 1:
-        msg += f"{ia.guild.get_member(players[-1]).mention} vs BYE"
+    for pairing in pairings:
+        if pairing[1] == "BYE":
+            msg += pairing[0] + " vs BYE\n"
+        msg += f"{ia.guild.get_member(pairing[1]).mention} vs {ia.guild.get_member(pairing[0]).mention}\n"
+    current_round += 1
+    cursor.execute("""UPDATE leagues SET current_round=? WHERE league_id=?""", (current_round, league_id))
+    cursor.executemany('''INSERT INTO matches VALUES (?, ?, ?, ?, ?, ?)''', [(None, league_id, current_round, p1, p2, -1) for p1, p2 in pairings])
     await ia.response.send_message(msg)
+
+
+def dss(players, matches, current_round):
+    # first calc points etc.
+    points = {}
+    byes = []
+    for player in players:
+        points[player] = 0
+    for match in matches:
+        # sweep1 sweep2 corp runner id 2411 2412 tie1 tie2 tietie bye
+        if match[3] > current_round - 5:
+            match match[2]:
+                case 0 | 5:
+                    points[match[0]] += 6
+                case 1 | 6:
+                    points[match[1]] += 6
+                case 2 | 3 | 4:
+                    points[match[0]] += 3
+                    points[match[1]] += 3
+                case 7:
+                    points[match[0]] += 4
+                    points[match[1]] += 1
+                case 8:
+                    points[match[0]] += 1
+                    points[match[1]] += 4
+                case 9:
+                    points[match[0]] += 2
+                    points[match[1]] += 2
+                case 10:
+                    points[match[0]] += 6
+                    byes.append(match[0])
+    rd.shuffle(players)
+    players.sort(key=lambda pl: points[pl])
+    bye = None
+    if len(players)%2 == 1:
+        for i in range(len(players)):
+            if players[i] not in byes:
+                bye = ([players.pop(i), "BYE"])
+                break
+    edges = [[a, b, 0] for idx, a in enumerate(players) for b in players[idx + 1:]]
+    for i, edge in enumerate(edges):
+        a, b, _ = edge
+        error = 10000
+        for match in matches:
+            if a == match[0] and b == match[1]:
+                error -= max(0, 9-current_round + match[0])*1000
+        error -= (points[a] - points[b]) ** 2
+        edges[i] = [players.index(a), players.index(b), error]
+
+
+    pairings = [[players[i], players[j]] for i, j in enumerate(mwm.maxWeightMatching(edges, True)) if i >= j]
+    if bye is not None:
+        pairings.append(bye)
+    return pairings
