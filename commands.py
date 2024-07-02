@@ -121,10 +121,10 @@ async def standings(ia):
 
 
 @command("report", "Report one of your matches", "everyone")
-async def report(ia, opponent: str, your_score: int, opponent_score: int, context: str = None):
+async def report(ia, opponent: str, left_player_score: int, right_player_score: int, context: str = None):
     #results = ["swept", "got swept", "corp split", "runner splity", "id", "won 241", "lost 241", "won->tie", "lost->tie", "tie->tie", "bye"]
     opponent_id = opponent[2:-1]
-    if your_score == opponent_score == 3:
+    if left_player_score == right_player_score == 3:
         if context == "id":
             result = 4
         elif context in ['c', 'corp', 'corp split']:
@@ -133,19 +133,19 @@ async def report(ia, opponent: str, your_score: int, opponent_score: int, contex
             result = 3
         else:
             return await ia.response.send_message(f"Please specify whether the result was id, corp split or runner split in the last argument", ephemeral=True)
-    elif your_score == 6 and opponent_score == 0:
+    elif left_player_score == 6 and right_player_score == 0:
         if context == "241":
             result = 5
         else:
             result = 0
-    elif your_score == 0 and opponent_score == 6:
+    elif left_player_score == 0 and right_player_score == 6:
         if context == "241":
             result = 6
         else:
             result = 1
-    elif your_score == 4 and opponent_score == 1:
+    elif left_player_score == 4 and right_player_score == 1:
         result = 7
-    elif your_score == 1 and opponent_score == 4:
+    elif left_player_score == 1 and right_player_score == 4:
         result = 8
     else:
         return await ia.response.send_message(f"I couldn't understand the result.", ephemeral=True)
@@ -161,8 +161,8 @@ async def report(ia, opponent: str, your_score: int, opponent_score: int, contex
                    (result, league_id, ia.user.id, opponent_id, opponent_id, ia.user.id, data[0][1]))
     db.commit()
     if data[0][0] == -1:
-        return await ia.response.send_message(f"You reported {your_score} - {opponent_score} against <@{opponent_id}>", ephemeral=True)
-    return await ia.response.send_message(f"You reported {your_score} - {opponent_score} against <@{opponent_id}>. This score was already reported before.", ephemeral=True)
+        return await ia.response.send_message(f"You reported {left_player_score} - {right_player_score} against <@{opponent_id}>", ephemeral=True)
+    return await ia.response.send_message(f"You reported {left_player_score} - {right_player_score} against <@{opponent_id}>. This score was already reported before.", ephemeral=True)
 
 @command("results", "Show the last round's results", "admin")
 async def results(ia, ephemeral: bool = False):
