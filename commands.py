@@ -164,7 +164,28 @@ async def report(ia, opponent: str, your_score: int, opponent_score: int, contex
         return await ia.response.send_message(f"You reported {your_score} - {opponent_score} against <@{opponent_id}>", ephemeral=True)
     return await ia.response.send_message(f"You reported {your_score} - {opponent_score} against <@{opponent_id}>. This score was already reported before.", ephemeral=True)
 
-
+@command("results", "Show the last round's results", "admin")
+async def results(ia, ephemeral: bool = False):
+    cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
+    league_id, current_round = cursor.fetchone()
+    cursor.execute('''SELECT player1_id, player2_id, result FROM matches WHERE league_id=? and round=?''', (league_id, current_round))
+    data = cursor.fetchall()
+    msg = ''
+    for item in data:
+        match item[2]:
+            case -1: msg += f'<@{item[0]}> ? - ? <@{item[1]}>'
+            case 0: msg += f'<@{item[0]}> 6 - 0 <@{item[1]}>'
+            case 1: msg += f'<@{item[0]}> 0 - 6 <@{item[1]}>'
+            case 2: msg += f'<@{item[0]}> 3 - 3 <@{item[1]}>'
+            case 3: msg += f'<@{item[0]}> 3 - 3 <@{item[1]}>'
+            case 4: msg += f'<@{item[0]}> 3 - 3 <@{item[1]}>'
+            case 5: msg += f'<@{item[0]}> 6 - 0 <@{item[1]}>'
+            case 6: msg += f'<@{item[0]}> 0 - 6 <@{item[1]}>'
+            case 7: msg += f'<@{item[0]}> 4 - 1 <@{item[1]}>'
+            case 8: msg += f'<@{item[0]}> 1 - 4 <@{item[1]}>'
+            case 9: msg += f'<@{item[0]}> 2 - 2 <@{item[1]}>'
+            case 10: msg += f'<@{item[0]}> 6 - 0 {"BYE":>21}'
+    return await ia.response.send_message(msg, ephemeral=ephemeral)
 
 @command("pair", "Pair a new round", "admin")
 async def pair(ia):
