@@ -164,8 +164,8 @@ async def report(ia, opponent: str, left_player_score: int, right_player_score: 
         return await ia.response.send_message(f"You reported {left_player_score} - {right_player_score} against <@{opponent_id}>", ephemeral=True)
     return await ia.response.send_message(f"You reported {left_player_score} - {right_player_score} against <@{opponent_id}>. This score was already reported before.", ephemeral=True)
 
-@command("results", "Show the last round's results", "admin")
-async def results(ia, ephemeral: bool = False, round_: str = "current"):
+@command("show_results", "Show the last round's results to everyone (this pings people)", "admin")
+async def show_results(ia, ephemeral: bool = False, round_: str = "current"):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
     league_id, current_round = cursor.fetchone()
     try:
@@ -194,6 +194,11 @@ async def results(ia, ephemeral: bool = False, round_: str = "current"):
         msg += '\n'
     return await ia.response.send_message(msg, ephemeral=ephemeral)
 
+@command("view_results", "View the last round's results ", "everyone")
+async def view_results(ia):
+    await show_results(ia)
+
+
 @command("pair", "Pair a new round", "admin")
 async def pair(ia):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
@@ -219,6 +224,10 @@ async def pair(ia):
     db.commit()
     await ia.response.send_message(msg)
 
+@command("help", "command help",  "everyone")
+async def help(ia):
+    with open("commands.md") as f:
+        await ia.response.send_message(f.read(), ephemeral=True)
 
 def dss(players, matches, current_round):
     # first calc points etc.
