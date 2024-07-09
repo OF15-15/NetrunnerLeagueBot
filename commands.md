@@ -18,10 +18,10 @@ View the current standings
 ### `/report [tag opponent] [left player score] [right player score] [context]`
 Report one of your matches. Context is one of `241`, `id`, `runner split` (aliases: `runner`, `r`), `corp split` (aliases: `corp`, `c`)
 
-### `/show_results`
-Admin only, show the last round's results to everyone
+### `/reminder`
+Admin only, pings unplayed games and shows the last round's current
 
-### `/view_results`
+### `/results`
 View the last round's results
 
 ### `/pair`
