@@ -164,12 +164,41 @@ async def report(ia, opponent: str, left_player_score: int, right_player_score: 
         return await ia.response.send_message(f"You reported {left_player_score} - {right_player_score} against <@{opponent_id}>", ephemeral=True)
     return await ia.response.send_message(f"You reported {left_player_score} - {right_player_score} against <@{opponent_id}>. This score was already reported before.", ephemeral=True)
 
-@command("show_results", "Show the last round's results to everyone (this pings people)", "admin")
-async def show_results(ia, ephemeral: bool = False, round_: str = "current"):
+@command("reminder", "remind unplayed games, show results to others", "admin")
+async def reminder(ia):
+    cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
+    league_id, current_round = cursor.fetchone()
+    print(current_round)
+    cursor.execute('''SELECT player1_id, player2_id, result FROM matches WHERE league_id=? and round=?''', (league_id, current_round))
+    data = cursor.fetchall()
+    msg = ''
+    for item in data:
+        print(item)
+        match item[2]:
+            case -1: msg += f'{ia.get_member(item[0]).mention} ? - ? {ia.get_member(item[1]).mention}'
+            case 0: msg += f'{ia.get_member(item[0]).name} 6 - 0 {ia.get_member(item[1]).name}'
+            case 1: msg += f'{ia.get_member(item[0]).name} 0 - 6 {ia.get_member(item[1]).name}'
+            case 2: msg += f'{ia.get_member(item[0]).name} 3 - 3 {ia.get_member(item[1]).name} (C)'
+            case 3: msg += f'{ia.get_member(item[0]).name} 3 - 3 {ia.get_member(item[1]).name} (R)'
+            case 4: msg += f'{ia.get_member(item[0]).name} 3 - 3 {ia.get_member(item[1]).name} (ID)'
+            case 5: msg += f'{ia.get_member(item[0]).name} 6 - 0 {ia.get_member(item[1]).name} (241)'
+            case 6: msg += f'{ia.get_member(item[0]).name} 0 - 6 {ia.get_member(item[1]).name} (241)'
+            case 7: msg += f'{ia.get_member(item[0]).name} 4 - 1 {ia.get_member(item[1]).name}'
+            case 8: msg += f'{ia.get_member(item[0]).name} 1 - 4 {ia.get_member(item[1]).name}'
+            case 9: msg += f'{ia.get_member(item[0]).name} 2 - 2 {ia.get_member(item[1]).name}'
+            case 10: msg += f'{ia.get_member(item[0]).name} 6 - 0 {"BYE":>21}'
+        msg += '\n'
+    return await ia.response.send_message(msg, ephemeral=False)
+
+
+
+
+@command("results", "View the last round's results ", "everyone")
+async def results(ia, round: str = "current"):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
     league_id, current_round = cursor.fetchone()
     try:
-        current_round = int(round_)
+        current_round = int(round)
     except ValueError:
         pass
     print(current_round)
@@ -192,11 +221,7 @@ async def show_results(ia, ephemeral: bool = False, round_: str = "current"):
             case 9: msg += f'<@{item[0]}> 2 - 2 <@{item[1]}>'
             case 10: msg += f'<@{item[0]}> 6 - 0 {"BYE":>21}'
         msg += '\n'
-    return await ia.response.send_message(msg, ephemeral=ephemeral)
-
-@command("view_results", "View the last round's results ", "everyone")
-async def view_results(ia):
-    await show_results(ia)
+    return await ia.response.send_message(msg, ephemeral=True)
 
 
 @command("pair", "Pair a new round", "admin")
