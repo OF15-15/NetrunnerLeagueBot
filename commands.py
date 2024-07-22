@@ -168,30 +168,26 @@ async def report(ia, opponent: str, left_player_score: int, right_player_score: 
 async def reminder(ia):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
     league_id, current_round = cursor.fetchone()
-    print(current_round)
     cursor.execute('''SELECT player1_id, player2_id, result FROM matches WHERE league_id=? and round=?''', (league_id, current_round))
     data = cursor.fetchall()
     msg = ''
     for item in data:
         print(item)
         match item[2]:
-            case -1: msg += f'{ia.get_member(item[0]).mention} ? - ? {ia.get_member(item[1]).mention}'
-            case 0: msg += f'{ia.get_member(item[0]).name} 6 - 0 {ia.get_member(item[1]).name}'
-            case 1: msg += f'{ia.get_member(item[0]).name} 0 - 6 {ia.get_member(item[1]).name}'
-            case 2: msg += f'{ia.get_member(item[0]).name} 3 - 3 {ia.get_member(item[1]).name} (C)'
-            case 3: msg += f'{ia.get_member(item[0]).name} 3 - 3 {ia.get_member(item[1]).name} (R)'
-            case 4: msg += f'{ia.get_member(item[0]).name} 3 - 3 {ia.get_member(item[1]).name} (ID)'
-            case 5: msg += f'{ia.get_member(item[0]).name} 6 - 0 {ia.get_member(item[1]).name} (241)'
-            case 6: msg += f'{ia.get_member(item[0]).name} 0 - 6 {ia.get_member(item[1]).name} (241)'
-            case 7: msg += f'{ia.get_member(item[0]).name} 4 - 1 {ia.get_member(item[1]).name}'
-            case 8: msg += f'{ia.get_member(item[0]).name} 1 - 4 {ia.get_member(item[1]).name}'
-            case 9: msg += f'{ia.get_member(item[0]).name} 2 - 2 {ia.get_member(item[1]).name}'
-            case 10: msg += f'{ia.get_member(item[0]).name} 6 - 0 {"BYE":>21}'
+            case -1: msg += f'{ia.guild.get_member(item[0]).mention} ? - ? {ia.guild.get_member(item[1]).mention}'
+            case 0: msg += f'{ia.guild.get_member(item[0]).name} 6 - 0 {ia.guild.get_member(item[1]).name}'
+            case 1: msg += f'{ia.guild.get_member(item[0]).name} 0 - 6 {ia.guild.get_member(item[1]).name}'
+            case 2: msg += f'{ia.guild.get_member(item[0]).name} 3 - 3 {ia.guild.get_member(item[1]).name} (C)'
+            case 3: msg += f'{ia.guild.get_member(item[0]).name} 3 - 3 {ia.guild.get_member(item[1]).name} (R)'
+            case 4: msg += f'{ia.guild.get_member(item[0]).name} 3 - 3 {ia.guild.get_member(item[1]).name} (ID)'
+            case 5: msg += f'{ia.guild.get_member(item[0]).name} 6 - 0 {ia.guild.get_member(item[1]).name} (241)'
+            case 6: msg += f'{ia.guild.get_member(item[0]).name} 0 - 6 {ia.guild.get_member(item[1]).name} (241)'
+            case 7: msg += f'{ia.guild.get_member(item[0]).name} 4 - 1 {ia.guild.get_member(item[1]).name}'
+            case 8: msg += f'{ia.guild.get_member(item[0]).name} 1 - 4 {ia.guild.get_member(item[1]).name}'
+            case 9: msg += f'{ia.guild.get_member(item[0]).name} 2 - 2 {ia.guild.get_member(item[1]).name}'
+            case 10: msg += f'{ia.guild.get_member(item[0]).name} 6 - 0 {"BYE":>21}'
         msg += '\n'
     return await ia.response.send_message(msg, ephemeral=False)
-
-
-
 
 @command("results", "View the last round's results ", "everyone")
 async def results(ia, round: str = "current"):
@@ -201,21 +197,19 @@ async def results(ia, round: str = "current"):
         current_round = int(round)
     except ValueError:
         pass
-    print(current_round)
     cursor.execute('''SELECT player1_id, player2_id, result FROM matches WHERE league_id=? and round=?''', (league_id, current_round))
     data = cursor.fetchall()
     msg = ''
     for item in data:
-        print(item)
         match item[2]:
             case -1: msg += f'<@{item[0]}> ? - ? <@{item[1]}>'
             case 0: msg += f'<@{item[0]}> 6 - 0 <@{item[1]}>'
             case 1: msg += f'<@{item[0]}> 0 - 6 <@{item[1]}>'
-            case 2: msg += f'<@{item[0]}> 3 - 3 <@{item[1]}>'
-            case 3: msg += f'<@{item[0]}> 3 - 3 <@{item[1]}>'
-            case 4: msg += f'<@{item[0]}> 3 - 3 <@{item[1]}>'
-            case 5: msg += f'<@{item[0]}> 6 - 0 <@{item[1]}>'
-            case 6: msg += f'<@{item[0]}> 0 - 6 <@{item[1]}>'
+            case 2: msg += f'<@{item[0]}> 3 - 3 <@{item[1]}> (C)'
+            case 3: msg += f'<@{item[0]}> 3 - 3 <@{item[1]}> (R)'
+            case 4: msg += f'<@{item[0]}> 3 - 3 <@{item[1]}> (ID)'
+            case 5: msg += f'<@{item[0]}> 6 - 0 <@{item[1]}> (241)'
+            case 6: msg += f'<@{item[0]}> 0 - 6 <@{item[1]}> (241)'
             case 7: msg += f'<@{item[0]}> 4 - 1 <@{item[1]}>'
             case 8: msg += f'<@{item[0]}> 1 - 4 <@{item[1]}>'
             case 9: msg += f'<@{item[0]}> 2 - 2 <@{item[1]}>'
@@ -241,7 +235,6 @@ async def pair(ia):
             msg += f"<@{pairing[0]}>" + " vs BYE\n"
         else:
             msg += f"<@{pairing[0]}> vs <@{pairing[1]}>\n"
-        print(pairing)
     current_round += 1
     cursor.execute("""UPDATE leagues SET current_round=? WHERE league_id=?""", (current_round, league_id))
     cursor.executemany('''INSERT INTO matches VALUES (?, ?, ?, ?, ?, ?)''', [(None, league_id, current_round, p1, p2, -1) for p1, p2 in pairings])
