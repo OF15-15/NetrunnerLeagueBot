@@ -52,15 +52,19 @@ async def messenger():
             cursor.execute('''UPDATE leagues SET pair_times=?, first_reminder=?, second_reminder=?, third_reminder=? WHERE league_id=?''',
                            (league[5] + league[6]*60*60*24, abs(league[7]), abs(league[8]), abs(league[9]), league[0]))
             await commands.pair(ia)
+            print("pair")
         elif league[5] - league[7] * 3600 < time.time():
             cursor.execute('''UPDATE leagues SET first_reminder=? WHERE league_id=?''', (-league[7], league[0]))
             await commands.reminder(ia)
+            print("reminder")
         elif league[5] - league[8] * 3600 < time.time():
             cursor.execute('''UPDATE leagues SET second_reminder=? WHERE league_id=?''', (-league[8], league[0]))
             await commands.reminder(ia)
+            print("reminder2")
         elif league[5] - league[9] * 3600 < time.time():
             cursor.execute('''UPDATE leagues SET third_reminder=? WHERE league_id=?''', (-league[9], league[0]))
             await commands.reminder(ia)
+            print("reminder3")
         db.commit()
 
 client.run(token)
