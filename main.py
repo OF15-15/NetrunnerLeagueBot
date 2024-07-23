@@ -46,7 +46,6 @@ async def messenger():
     cursor.execute('''SELECT league_id, guild_id, channel_id, name, current_round, pair_times, round_interval, first_reminder, second_reminder, third_reminder
     FROM leagues WHERE leagues.pair_times is not null''')
     leagues = cursor.fetchall()
-    print(leagues)
     for league in leagues:
         ia = ia_standin.Interaction(league[1], league[2], 1232430844891758623, client)
         if league[5] < time.time():
@@ -55,7 +54,6 @@ async def messenger():
             cursor.execute('''UPDATE leagues SET pair_times=?, first_reminder=?, second_reminder=?, third_reminder=? WHERE league_id=?''',
                            (new_round, abs(league[7]), abs(league[8]), abs(league[9]), league[0]))
             await commands.pair(ia, msg)
-            print("pair")
         elif league[5] - league[7] * 3600 < time.time():
             msg = f"This round will close roughly on <t:{league[5]}:F> which is <t:{league[5]}:R>. Please remember to get your games in :)"
             cursor.execute('''UPDATE leagues SET first_reminder=? WHERE league_id=?''', (-league[7], league[0]))

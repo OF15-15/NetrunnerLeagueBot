@@ -249,8 +249,7 @@ async def pair(ia, extra_message:str = ''):
 async def scheduled_pairing(ia, start_time: int, interval_days: int = 7, first_reminder_hours: int = 0, second_reminder_hours: int = 0, third_reminder_hours: int = 0):
     cursor.execute('''UPDATE leagues SET pair_times=?, round_interval=?, first_reminder=?, second_reminder=?, third_reminder=? WHERE channel_id=? ''', (start_time, interval_days, first_reminder_hours, second_reminder_hours, third_reminder_hours, ia.channel_id))
     db.commit()
-    await ia.response.send_message(f"""You set up a schedule for this league.\n The next round will go up on <t:{start_time}:F> with repetition every {interval_days} days.\n You set reminders 
-    {first_reminder_hours} {bool(second_reminder_hours)*(', ' + str(second_reminder_hours))}{bool(third_reminder_hours)*(' and ' + str(third_reminder_hours))} hours before each pairing.""", ephemeral=True)
+    await ia.response.send_message(f"You set up a schedule for this league.\n The next round will go up on <t:{start_time}:F> with repetition every {interval_days} days.\n You set reminders {first_reminder_hours} {bool(second_reminder_hours)*(', ' + str(second_reminder_hours))}{bool(third_reminder_hours)*(' and ' + str(third_reminder_hours))} hours before each pairing.")
 
 @command("help", "command help",  "everyone")
 async def help(ia):
