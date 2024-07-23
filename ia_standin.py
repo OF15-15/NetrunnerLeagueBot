@@ -14,4 +14,6 @@ class Messenger:
     def __init__(self, ia):
         self.ia = ia
     async def send_message(self, message, ephemeral=False, **kwargs):
+        if not message:
+            message = "some error"
         await self.ia.channel.send(content=message, silent=ephemeral, **kwargs)
