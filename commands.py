@@ -168,12 +168,12 @@ async def report(ia, opponent: str, left_player_score: int, right_player_score: 
     return await ia.response.send_message(f"You reported {left_player_score} - {right_player_score} against <@{opponent_id}>. This score was already reported before.", ephemeral=True)
 
 @command("reminder", "remind unplayed games, show results to others", "admin")
-async def reminder(ia):
+async def reminder(ia, extra_message: str = ''):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
     league_id, current_round = cursor.fetchone()
     cursor.execute('''SELECT player1_id, player2_id, result FROM matches WHERE league_id=? and round=?''', (league_id, current_round))
     data = cursor.fetchall()
-    msg = ''
+    msg = extra_message + '\n' if extra_message else ''
     for item in data:
         print(item)
         match item[2]:
@@ -222,7 +222,7 @@ async def results(ia, round: str = "current"):
 
 
 @command("pair", "Pair a new round", "admin")
-async def pair(ia):
+async def pair(ia, extra_message = ''):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
     league_id, current_round = cursor.fetchone()
     cursor.execute('''SELECT pl.user_id FROM player_leagues as pl WHERE pl.league_id=?''', (league_id,))
@@ -232,7 +232,7 @@ async def pair(ia):
     pairings = dss(players, matches, current_round)
     if len(pairings) == 0:
         await ia.response.send_message("league is empty", ephemeral=True)
-    msg = ""
+    msg = extra_message + ('\n' * bool(extra_message))
     for pairing in pairings:
         if pairing[1] == "BYE":
             msg += f"<@{pairing[0]}>" + " vs BYE\n"
