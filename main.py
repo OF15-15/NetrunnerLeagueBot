@@ -43,7 +43,8 @@ async def on_ready():
 
 @tasks.loop(minutes=1)
 async def messenger():
-    cursor.execute('''SELECT * FROM leagues WHERE leagues.pair_times is not null''')
+    cursor.execute('''SELECT league_id, guild_id, channel_id, name, current_round, pair_times, round_interval, first_reminder, second_reminder, third_reminder
+    FROM leagues WHERE leagues.pair_times is not null''')
     leagues = cursor.fetchall()
     print(leagues)
     for league in leagues:
