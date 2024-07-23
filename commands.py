@@ -222,7 +222,7 @@ async def results(ia, round: str = "current"):
 
 
 @command("pair", "Pair a new round", "admin")
-async def pair(ia, extra_message = ''):
+async def pair(ia, extra_message:str = ''):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
     league_id, current_round = cursor.fetchone()
     cursor.execute('''SELECT pl.user_id FROM player_leagues as pl WHERE pl.league_id=?''', (league_id,))
