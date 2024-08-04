@@ -267,7 +267,7 @@ async def help(ia):
     with (open("commands.md") as f):
         await ia.response.send_message(f.read(), ephemeral=True)
 
-@command("help", "command help for admins",  "admin")
+@command("admin_help", "command help for admins",  "admin")
 async def admin_help(ia):
     with open("admin_commands.md") as f:
         await ia.response.send_message(f.read(), ephemeral=True)
