@@ -18,5 +18,8 @@ View the results of a round, defaults to the current round
 ### `/report [tag opponent] [left player score] [right player score] [context]`
 Report one of your matches. Context is one of `241`, `id`, `runner split` (aliases: `runner`, `r`), `corp split` (aliases: `corp`, `c`)
 
+### `/admin_help`
+Show help for league admins
+
 ### `/help`
 Show this command

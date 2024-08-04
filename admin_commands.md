@@ -1,5 +1,8 @@
 # Admin-Commands for the Netrunner-League-Bot 
 
+In general: for help, feature requests or any other bot problems, hit <@849206816172802068> up 
+
+
 ### `/create [name]`
 Admin only, create a new league in this channel
 
