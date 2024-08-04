@@ -1,8 +1,5 @@
 # Commands for Netrunner-League-Bot
 
-### `/create [name]`
-Admin only, create a new league in this channel
-
 ### `/join`
 Join the league in this channel
 
@@ -15,17 +12,11 @@ Check whether you are currently in the league in this channel
 ### `/standings`
 View the current standings
 
+### `/results [round]`
+View the results of a round, defaults to the current round
+
 ### `/report [tag opponent] [left player score] [right player score] [context]`
 Report one of your matches. Context is one of `241`, `id`, `runner split` (aliases: `runner`, `r`), `corp split` (aliases: `corp`, `c`)
-
-### `/reminder`
-Admin only, pings unplayed games and shows the last round's current
-
-### `/results`
-View the last round's results
-
-### `/pair`
-Admin only, pair a new round
 
 ### `/help`
 Show this command

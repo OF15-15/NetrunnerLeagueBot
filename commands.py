@@ -264,7 +264,12 @@ async def scheduled_pairing(ia, start_time: int, interval_days: int = 7, first_r
 
 @command("help", "command help",  "everyone")
 async def help(ia):
-    with open("commands.md") as f:
+    with (open("commands.md") as f):
+        await ia.response.send_message(f.read(), ephemeral=True)
+
+@command("help", "command help for admins",  "admin")
+async def admin_help(ia):
+    with open("admin_commands.md") as f:
         await ia.response.send_message(f.read(), ephemeral=True)
 
 def dss(players, matches, current_round):
