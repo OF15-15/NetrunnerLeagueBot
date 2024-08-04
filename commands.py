@@ -224,6 +224,13 @@ async def results(ia, round: str = "current"):
         msg += '\n'
     return await ia.response.send_message(msg, ephemeral=True)
 
+@command("delete_round", "Delete the last round", "admin")
+async def delete_round(ia):
+    cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
+    league_id, current_round = cursor.fetchone()
+    cursor.execute('''DELETE FROM matches WHERE league_id=? and round=?''', (league_id, current_round))
+    cursor.execute('''UPDATE current_round FROM leagues WHERE league_id=?''', (league_id,))
+    db.commit()
 
 @command("pair", "Pair a new round", "admin")
 async def pair(ia, extra_message:str = ''):
