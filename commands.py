@@ -95,7 +95,10 @@ async def standings(ia):
     points = {player: 0 for player in players}
 
     for match in matches:
-        if match[0] not in points: continue
+        if match[0] not in points:
+            points[match[0]] = 0
+        if match[1] not in points:
+            points[match[0]] = 1
         # sweep1 sweep2 corp runner id 2411 2412 tie1 tie2 tietie bye
         if match[3] > current_round - 5:
             match match[2]:
