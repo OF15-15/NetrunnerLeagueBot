@@ -53,17 +53,17 @@ async def create_league(ia, name: str):
     await ia.response.send_message(f"You created league {name} in this channel")
 
 @command("add_admin", "Add an admin", "admin")
-async def add_admin(ia, admin_id: int, guild_id: int):
+async def add_admin(ia, admin_id: str, guild_id: str):
     if ia.user.id != 849206816172802068:
         return await ia.response.send_message("no access", ephemeral=True)
-    cursor.execute('''INSERT INTO admins VALUES (?, ?)''', (admin_id, guild_id))
+    cursor.execute('''INSERT INTO admins VALUES (?, ?)''', (int(admin_id), int(guild_id)))
     db.commit()
     await ia.response.send_message(f"Admin <@{admin_id}> added to guild {guild_id}", ephemeral=True)
 @command("add_guild", "Add a guild", "admin")
-async def add_guild(ia, guild_id: int, name: str):
+async def add_guild(ia, guild_id: str, name: str):
     if ia.user.id != 849206816172802068:
         return await ia.response.send_message("no access", ephemeral=True)
-    cursor.execute('''INSERT INTO guilds VALUES (?, ?)''', (guild_id, name))
+    cursor.execute('''INSERT INTO guilds VALUES (?, ?)''', (int(guild_id), int(name)))
     db.commit()
     await ia.response.send_message(f"added guild {guild_id}", ephemeral=True)
 
