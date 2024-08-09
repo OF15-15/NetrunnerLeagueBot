@@ -6,6 +6,9 @@ In general: for help, feature requests or any other bot problems, hit <@84920681
 ### `/create [name]`
 Admin only, create a new league in this channel
 
+### `/delete_league`
+Admin only, delete the league in this channel
+
 ### `/reminder`
 Admin only, pings unplayed games and shows the last round's current
 
