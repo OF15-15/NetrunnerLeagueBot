@@ -338,7 +338,7 @@ def dss(players, matches, current_round):
         a, b, _ = edge
         error = 10000
         for match in matches:
-            if a == match[0] and b == match[1]:
+            if a in match and b in match:
                 error -= max(0, 9-current_round + match[0])*1000
         error -= (points[a] - points[b]) ** 2
         edges[i] = [players.index(a), players.index(b), error]
