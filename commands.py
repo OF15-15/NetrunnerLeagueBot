@@ -109,7 +109,7 @@ async def standings(ia):
     try:
         league_id, current_round = cursor.fetchone()
     except TypeError:
-        await return ia.response.send_message("No league in this channel", ephemeral=True)
+        return await ia.response.send_message("No league in this channel", ephemeral=True)
     cursor.execute('''SELECT pl.user_id FROM player_leagues as pl WHERE pl.league_id=?''', (league_id,))
     players = [p[0] for p in cursor.fetchall()]
     cursor.execute('''SELECT player1_id, player2_id, result, round FROM matches WHERE league_id=?''', (league_id, ))
