@@ -52,6 +52,12 @@ async def create_league(ia, name: str):
     db.commit()
     await ia.response.send_message(f"You created league {name} in this channel")
 
+@command("delete_league", "Delete the league in this channel", "admin")
+async def delete_league(ia):
+    cursor.execute('''DELETE FROM leagues WHERE channel_id=?''', (ia.channel_id, ))
+    db.commit()
+    await ia.response.send_message(f"You deleted the league in this channel")
+
 @command("add_admin", "Add an admin", "admin")
 async def add_admin(ia, admin_id: str, guild_id: str):
     if ia.user.id != 849206816172802068:
