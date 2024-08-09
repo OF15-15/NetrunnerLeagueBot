@@ -63,7 +63,7 @@ async def add_admin(ia, admin_id: str, guild_id: str):
 async def add_guild(ia, guild_id: str, name: str):
     if ia.user.id != 849206816172802068:
         return await ia.response.send_message("no access", ephemeral=True)
-    cursor.execute('''INSERT INTO guilds VALUES (?, ?)''', (int(guild_id), int(name)))
+    cursor.execute('''INSERT INTO guilds VALUES (?, ?)''', (int(guild_id), name))
     db.commit()
     await ia.response.send_message(f"added guild {guild_id}", ephemeral=True)
 
@@ -213,11 +213,11 @@ async def reminder(ia, extra_message: str = ''):
 @command("results", "View the last round's results ", "everyone")
 async def results(ia, round: str = "current"):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
-    league_id, current_round = cursor.fetchone()
+    league_id, cr = cursor.fetchone()
     try:
         current_round = int(round)
     except ValueError:
-        pass
+        current_round = int(cr)
     cursor.execute('''SELECT player1_id, player2_id, result FROM matches WHERE league_id=? and round=?''', (league_id, current_round))
     data = cursor.fetchall()
     msg = ''
@@ -236,6 +236,8 @@ async def results(ia, round: str = "current"):
             case 9: msg += f'<@{item[0]}> 2 - 2 <@{item[1]}>'
             case 10: msg += f'<@{item[0]}> 6 - 0 {"BYE":>21}'
         msg += '\n'
+    if msg == '':
+        return await ia.response.send_message("round not found", ephemeral=True)
     return await ia.response.send_message(msg, ephemeral=True)
 
 @command("delete_round", "Delete the last round", "admin")
@@ -243,7 +245,7 @@ async def delete_round(ia):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
     league_id, current_round = cursor.fetchone()
     cursor.execute('''DELETE FROM matches WHERE league_id=? and round=?''', (league_id, current_round))
-    cursor.execute('''UPDATE current_round FROM leagues WHERE league_id=?''', (league_id,))
+    cursor.execute('''UPDATE leagues SET current_round=? WHERE league_id=?''', (current_round-1, league_id))
     db.commit()
 
 @command("pair", "Pair a new round", "admin")
