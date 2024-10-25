@@ -104,12 +104,14 @@ async def status(ia):
     await ia.response.send_message(f"You are no member of a league in this channel", ephemeral=True)
 
 @command("standings", "check the current standings", "everyone")
-async def standings(ia):
+async def standings(ia, from_previous_round = None, all = None):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
     try:
         league_id, current_round = cursor.fetchone()
     except TypeError:
         return await ia.response.send_message("No league in this channel", ephemeral=True)
+    if from_previous_round is not None:
+        current_round = from_previous_round
     cursor.execute('''SELECT pl.user_id FROM player_leagues as pl WHERE pl.league_id=?''', (league_id,))
     players = [p[0] for p in cursor.fetchall()]
     cursor.execute('''SELECT player1_id, player2_id, result, round FROM matches WHERE league_id=?''', (league_id, ))
@@ -123,7 +125,7 @@ async def standings(ia):
         if match[1] not in points:
             points[match[1]] = 0
         # sweep1 sweep2 corp runner id 2411 2412 tie1 tie2 tietie bye
-        if match[3] > current_round - 5:
+        if (match[3] > current_round - 5 or all is not None) and match[3] <= current_round:
             match match[2]:
                 case 0 | 5:
                     points[match[0]] += 6

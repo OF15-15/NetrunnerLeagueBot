@@ -9,8 +9,8 @@ Leave the league in this channel
 ### `/status`
 Check whether you are currently in the league in this channel
 
-### `/standings`
-View the current standings
+### `/standings [round] [all]`
+View the current standings or the standings in a specific round. If `all` is set to anything, don't cut to the last 4 rounds.
 
 ### `/results [round]`
 View the results of a round, defaults to the current round
