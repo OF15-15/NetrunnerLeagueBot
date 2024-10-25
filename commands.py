@@ -104,7 +104,7 @@ async def status(ia):
     await ia.response.send_message(f"You are no member of a league in this channel", ephemeral=True)
 
 @command("standings", "check the current standings", "everyone")
-async def standings(ia, from_previous_round = None, all = None):
+async def standings(ia, from_previous_round: int = None, all: str = None):
     cursor.execute('''SELECT league_id, current_round FROM leagues WHERE channel_id=?''', (ia.channel_id,))
     try:
         league_id, current_round = cursor.fetchone()
