@@ -87,6 +87,14 @@ async def join(ia):
     except:
         print("double join ?!")
 
+@command("remove_player", "Remove a player", "admin")
+async def remove_player(ia, player: str):
+    cursor.execute('''SELECT league_id, name FROM leagues WHERE channel_id=?''', (ia.channel.id,))
+    league_id = cursor.fetchone()[0:2]
+    cursor.execute('''DELETE FROM player_leagues WHERE user_id=? AND league_id=?''', (player[2:-1], league_id))
+    db.commit()
+    await ia.response.send_message(f"You removed <@{player[2:-1]}> from this league", ephemeral=True)
+
 @command("leave", "Leave the league in this channel", "everyone")
 async def leave(ia):
     cursor.execute('''SELECT league_id, name FROM leagues WHERE channel_id=?''', (ia.channel.id,))
