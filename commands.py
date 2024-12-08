@@ -279,7 +279,7 @@ async def pair(ia, extra_message:str = ''):
     pairings = dss(players, matches, current_round)
     if len(pairings) == 0:
         await ia.response.send_message("league is empty", ephemeral=True)
-    msg = extra_message + ('\n' * bool(extra_message))
+    msg = extra_message + ('\n' * bool(extra_message)) + f'Round {current_round}\n'
     for pairing in pairings:
         if pairing[1] == "BYE":
             msg += f"<@{pairing[0]}>" + " vs BYE\n"
