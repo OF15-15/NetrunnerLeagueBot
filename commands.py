@@ -59,6 +59,14 @@ async def delete_league(ia):
     db.commit()
     await ia.response.send_message(f"You deleted the league in this channel")
 
+@command("pause_league", "Pause the league in this channel", "admin")
+async def pause(ia):
+    cursor.execute(
+        '''UPDATE leagues SET pair_times=? WHERE channel_id=? ''',
+        (None, ia.channel_id))
+    db.commit()
+    ia.response.send_message(f"You paused the league in this channel")
+
 @command("add_admin", "Add an admin", "admin")
 async def add_admin(ia, admin_id: str, guild_id: str):
     if ia.user.id != 849206816172802068:
