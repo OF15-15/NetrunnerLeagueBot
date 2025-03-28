@@ -8,6 +8,7 @@ import json as js
 import random as rd
 import mwmatching as mwm
 from discord.ext import tasks
+import aiohttp
 
 def command(name, description, perms):
     def decorator(func):
@@ -368,3 +369,15 @@ def dss(players, matches, current_round):
     if bye is not None:
         pairings.append(bye)
     return pairings
+
+@command("cobra_tournament", "Set up a cobra tournament to watch", "admin")
+async def cobra_tournament(ia, tournament_id: int):
+    cursor.execute('''INSERT INTO cobra_tournaments VALUES (?, ?, ?, ?)''', (tournament_id, ia.channel.id, round(time.time())+7200, 0))
+    db.commit()
+    return await ia.response.send_message(f"The tournament {tournament_id} has been set up. It will check for new rounds until at least <t:{round(time.time())+7200}:t>, but this time is refreshed whenever the cobra changes or you call the `\\activate` command.", ephemeral=True)
+
+@command("activate_tournament", "Activate a timeouted tournament again", "admin")
+async def activate_tournament(ia):
+    cursor.execute('''UPDATE cobra_tournaments SET active_until=? WHERE channel_id=?''', (round(time.time()+7200), ia.channel.id))
+    db.commit()
+    return await ia.response.send_message(f"The tournament is active until at least <t:{round(time.time())+7200}:t>.", ephemeral=True)

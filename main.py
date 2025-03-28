@@ -5,6 +5,7 @@ import commands
 import sqlite3
 import json as js
 from discord.ext import tasks
+import aiohttp
 
 # private bot-specific token
 with open("token.txt") as f:
@@ -41,7 +42,7 @@ async def on_ready():
     messenger.start()
 
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=1)
 async def messenger():
     cursor.execute('''SELECT league_id, guild_id, channel_id, name, current_round, pair_times, round_interval, first_reminder, second_reminder, third_reminder
     FROM leagues WHERE leagues.pair_times is not null''')
@@ -67,5 +68,29 @@ async def messenger():
             cursor.execute('''UPDATE leagues SET third_reminder=? WHERE league_id=?''', (-league[9], league[0]))
             await commands.reminder(ia, msg)
         db.commit()
+
+    # cobra tournaments
+    cursor.execute('''SELECT tournament_id FROM cobra_tournaments WHERE active_until>?''', (time.time(),))
+    if len(cursor.fetchall()) > 0:
+        if not tournament_watcher.is_running(): tournament_watcher.start()
+        print("tournament watcher active")
+    else:
+        tournament_watcher.stop()
+        print("tournament watcher not active")
+
+@tasks.loop(seconds=10)
+async def tournament_watcher():
+    cursor.execute('''SELECT tournament_id, channel_id, round FROM cobra_tournaments WHERE active_until>?''', (time.time(),))
+    for tournament in cursor.fetchall():
+        tournament_id, channel_id, round = tournament
+        url = f"https://tournaments.nullsignal.games/tournaments/{tournament_id}.json"
+        async with aiohttp.ClientSession() as session:
+            raw_data = await session.get(url)
+        data = await raw_data.json()
+        if data["preliminaryRounds"] > round:
+            print("foo 1234")
+            cursor.execute('''UPDATE cobra_tournaments SET round=? WHERE tournament_id=?''', (data["preliminaryRounds"], tournament_id))
+            db.commit()
+
 
 client.run(token)
