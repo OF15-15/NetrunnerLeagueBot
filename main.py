@@ -27,6 +27,9 @@ cursor.execute('''SELECT * FROM guilds''')
 guilds = cursor.fetchall()
 db.commit()
 
+with open("id.txt") as f:
+    user_id = int(f.read())
+
 guild_ids = [g[0] for g in guilds]
 
 for cmd in commands.command_list:
@@ -48,7 +51,7 @@ async def messenger():
     FROM leagues WHERE leagues.pair_times is not null''')
     leagues = cursor.fetchall()
     for league in leagues:
-        ia = ia_standin.Interaction(league[1], league[2], 1232430844891758623, client)
+        ia = ia_standin.Interaction(league[1], league[2], user_id, client)
         if league[5] < time.time():
             new_round = league[5] + league[6]*60*60*24
             msg = f"This round will close roughly on <t:{new_round}:F> which is <t:{new_round}:R>."
@@ -80,17 +83,18 @@ async def messenger():
 
 @tasks.loop(seconds=10)
 async def tournament_watcher():
-    cursor.execute('''SELECT tournament_id, channel_id, round FROM cobra_tournaments WHERE active_until>?''', (time.time(),))
+    cursor.execute('''SELECT tournament_id, channel_id, guild_id, round FROM cobra_tournaments WHERE active_until>?''', (time.time(),))
     for tournament in cursor.fetchall():
-        tournament_id, channel_id, round = tournament
+        tournament_id, channel_id, guild_id, round = tournament
         url = f"https://tournaments.nullsignal.games/tournaments/{tournament_id}.json"
         async with aiohttp.ClientSession() as session:
             raw_data = await session.get(url)
         data = await raw_data.json()
         if data["preliminaryRounds"] > round:
-            print("foo 1234")
+            ia = ia_standin.Interaction(guild_id, channel_id, user_id, client)
             cursor.execute('''UPDATE cobra_tournaments SET round=? WHERE tournament_id=?''', (data["preliminaryRounds"], tournament_id))
             db.commit()
+            await ia.response.send_message(f"Round {data['preliminaryRounds']} is paired here:\nhttps://tournaments.nullsignal.games/tournaments/{tournament_id}/rounds")
 
 
 client.run(token)

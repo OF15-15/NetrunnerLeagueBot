@@ -380,7 +380,7 @@ def dss(players, matches, current_round):
 
 @command("cobra_tournament", "Set up a cobra tournament to watch", "admin")
 async def cobra_tournament(ia, tournament_id: int):
-    cursor.execute('''INSERT INTO cobra_tournaments VALUES (?, ?, ?, ?)''', (tournament_id, ia.channel.id, round(time.time())+7200, 0))
+    cursor.execute('''INSERT INTO cobra_tournaments VALUES (?, ?, ?, ?, ?)''', (tournament_id, ia.channel.id, round(time.time())+7200, 0, ia.guild.id))
     db.commit()
     return await ia.response.send_message(f"The tournament {tournament_id} has been set up. It will check for new rounds until at least <t:{round(time.time())+7200}:t>, but this time is refreshed whenever the cobra changes or you call the `\\activate` command.", ephemeral=True)
 
@@ -389,3 +389,53 @@ async def activate_tournament(ia):
     cursor.execute('''UPDATE cobra_tournaments SET active_until=? WHERE channel_id=?''', (round(time.time()+7200), ia.channel.id))
     db.commit()
     return await ia.response.send_message(f"The tournament is active until at least <t:{round(time.time())+7200}:t>.", ephemeral=True)
+
+@command("tournament_pairings", "Get the pairings for the current cobra tournament", "everyone")
+async def tournament_pairings(ia):
+    cursor.execute('''SELECT tournament_id, round FROM cobra_tournaments WHERE channel_id=?''', (ia.channel_id, ))
+    tournaments = cursor.fetchall()
+    if len(tournaments) == 0:
+        return await ia.response.send_message(f"There is no cobra tournament set up for this channel.", ephemeral=True)
+    tournament_id = tournaments[0][0]
+    url = f"https://tournaments.nullsignal.games/tournaments/{tournament_id}.json"
+    async with aiohttp.ClientSession() as session:
+        raw_data = await session.get(url)
+    data = await raw_data.json()
+    msg = ''
+    for pairing in data['rounds'][-1]:
+        msg += f"`{pairing['table']}:` {get_player(ia, data['players'], pairing['player2']['id'])} - {get_player(ia, data['players'], pairing['player1']['id'])}\n"
+    return await ia.response.send_message(msg, ephemeral=True)
+
+@command("tournament_standings", "Get the standings for the current cobra tournament", "everyone")
+async def tournament_standings(ia):
+    cursor.execute('''SELECT tournament_id, round FROM cobra_tournaments WHERE channel_id=?''', (ia.channel_id, ))
+    tournaments = cursor.fetchall()
+    if len(tournaments) == 0:
+        return await ia.response.send_message(f"There is no cobra tournament set up for this channel.", ephemeral=True)
+    tournament_id = tournaments[0][0]
+    url = f"https://tournaments.nullsignal.games/tournaments/{tournament_id}.json"
+    async with aiohttp.ClientSession() as session:
+        raw_data = await session.get(url)
+    data = await raw_data.json()
+    msg = '`Pos|Pts|   SoS|  ESoS` - Username\n'
+    for player in data['players']:
+        msg += f"`{str(player['rank']):>3}|{str(player['matchPoints']):>3}|{(player['strengthOfSchedule']):>6}|{(player['extendedStrengthOfSchedule']):>6}` - {get_player(ia, player_name=player['name'])}\n"
+    return await ia.response.send_message(msg, ephemeral=True)
+
+def get_player(ia, players=None, player_id=None, player_name="not found"):
+    if players is not None and player_id is not None:
+        for player in players:
+            if player['id'] == player_id:
+                player_name = player['name']
+    player = ia.guild.get_member_named(player_name)
+    if player is None:
+        return player_name
+    return player.mention
+
+
+
+@command("remove_tournament", "Remove a cobra tournament", "admin")
+async def remove_tournament(ia):
+    cursor.execute('''DELETE FROM cobra_tournaments WHERE channel_id=?''', (ia.channel_id, ))
+    db.commit()
+    return await ia.response.send_message("You removed all tournaments in this channel", ephemeral=True)
