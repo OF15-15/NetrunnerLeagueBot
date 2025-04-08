@@ -45,7 +45,7 @@ async def on_ready():
     messenger.start()
 
 
-@tasks.loop(minutes=1)
+@tasks.loop(minutes=5)
 async def messenger():
     cursor.execute('''SELECT league_id, guild_id, channel_id, name, current_round, pair_times, round_interval, first_reminder, second_reminder, third_reminder
     FROM leagues WHERE leagues.pair_times is not null''')
