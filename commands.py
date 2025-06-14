@@ -170,8 +170,9 @@ async def standings(ia, from_previous_round: int = None, all: str = None, show_o
     for player in players:
         player_obj = ia.guild.get_member(player)
         if player_obj is not None:
-            player = player_obj.mention
-        msg += f'{player_obj}: {points[player]}\n'
+            msg += f'{player_obj.mention}: {points[player]}\n'
+        else:
+            msg += f'{player}: {points[player]}\n'
     if msg == '': msg = "This league is currently empty."
     await ia.response.send_message(msg, ephemeral=True)
 
