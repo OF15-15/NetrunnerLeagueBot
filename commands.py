@@ -135,17 +135,15 @@ async def standings(ia, from_previous_round: int = None, all: str = None, show_o
     cursor.execute('''SELECT player1_id, player2_id, result, round FROM matches WHERE league_id=?''', (league_id, ))
     matches = cursor.fetchall()
 
-
-
     points = {player: 0 for player in players}
 
     for match in matches:
         if match[0] not in points:
             points[match[0]] = 0
-            if show_old_players is not None: players.append(match[0])
+            if show_old_players is not None and match[1] is not None: players.append(match[0])
         if match[1] not in points:
             points[match[1]] = 0
-            if show_old_players is not None: players.append(match[1])
+            if show_old_players is not None and match[1] is not None: players.append(match[1])
         # sweep1 sweep2 corp runner id 2411 2412 tie1 tie2 tietie bye
         if (match[3] > current_round - 5 or all is not None) and match[3] <= current_round:
             match match[2]:
