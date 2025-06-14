@@ -140,10 +140,10 @@ async def standings(ia, from_previous_round: int = None, all: str = None, show_o
     for match in matches:
         if match[0] not in points:
             points[match[0]] = 0
-            if show_old_players is not None and match[1] is not None: players.append(match[0])
+            if show_old_players is not None and match[1]: players.append(match[0])
         if match[1] not in points:
             points[match[1]] = 0
-            if show_old_players is not None and match[1] is not None: players.append(match[1])
+            if show_old_players is not None and match[1]: players.append(match[1])
         # sweep1 sweep2 corp runner id 2411 2412 tie1 tie2 tietie bye
         if (match[3] > current_round - 5 or all is not None) and match[3] <= current_round:
             match match[2]:
@@ -168,7 +168,10 @@ async def standings(ia, from_previous_round: int = None, all: str = None, show_o
     msg = ''
     players.sort(key=lambda p: points[p])
     for player in players:
-        msg += f'{ia.guild.get_member(player).mention}: {points[player]}\n'
+        player_obj = ia.guild.get_member(player)
+        if player_obj is not None:
+            player = player_obj.mention
+        msg += f'{player_obj}: {points[player]}\n'
     if msg == '': msg = "This league is currently empty."
     await ia.response.send_message(msg, ephemeral=True)
 
