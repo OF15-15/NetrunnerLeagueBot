@@ -183,7 +183,8 @@ async def report(ia, opponent: str, left_player_score: int, right_player_score: 
         elif context in ['r', 'runner', 'runner split']:
             result = 3
         else:
-            return await ia.response.send_message(f"Please specify whether the result was id, corp split or runner split in the last argument", ephemeral=True)
+            result = 4
+            # return await ia.response.send_message(f"Please specify whether the result was id, corp split or runner split in the last argument", ephemeral=True)
     elif left_player_score == 6 and right_player_score == 0:
         if context == "241":
             result = 5
