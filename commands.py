@@ -438,7 +438,7 @@ async def tournament_standings(ia):
     for p in data["players"]:
         lines.append(
             f"`{str(p['rank']):>3.3}|{str(p['matchPoints']):>3.3}"
-            f"|{p['strengthOfSchedule']:>6}|{p['extendedStrengthOfSchedule']:>6}`"
+            f"|{str(p['strengthOfSchedule']):>6.6}|{str(p['extendedStrengthOfSchedule']):>6.6}`"
             f" - {get_player(ia, player_name=p['name'])}"
         )
 
