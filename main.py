@@ -90,8 +90,10 @@ async def tournament_watcher():
         print(f"tournament id {tournament_id}")
         url = f"https://tournaments.nullsignal.games/tournaments/{tournament_id}.json"
         async with aiohttp.ClientSession() as session:
-            raw_data = await session.get(url)
-        data = await raw_data.json()
+            async with session.get(url) as resp:
+                resp.raise_for_status()
+                data = await resp.json()
+        print(".")
         if data["preliminaryRounds"] > round:
             ia = ia_standin.Interaction(guild_id, channel_id, user_id, client, True)
             cursor.execute('''UPDATE cobra_tournaments SET round=? WHERE tournament_id=? AND channel_id=?''', (data["preliminaryRounds"], tournament_id, channel_id))
