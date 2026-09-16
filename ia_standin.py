@@ -18,6 +18,6 @@ class Messenger:
     async def send_message(self, message, ephemeral=False, **kwargs):
         if not message:
             message = "some error"
-        await self.ia.channel.send(content=message, silent=ephemeral or self.ia.ephemeral, **kwargs)
+        await self.ia.channel.send(content=message, silent=ephemeral and self.ia.ephemeral, **kwargs)
     async def send(self, *args, **kwargs): print("hi");await self.send_message(*args, **kwargs)
     async def defer(self, *args, **kwargs): return None
