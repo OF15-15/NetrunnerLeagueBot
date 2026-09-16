@@ -98,6 +98,5 @@ async def tournament_watcher():
             await ia.response.send_message(f"Round {data['preliminaryRounds']} is paired here:\nhttps://tournaments.nullsignal.games/tournaments/{tournament_id}/rounds")
             await commands.tournament_pairings(ia)
             await ia.response.send_message(f"Round roughly starts at <t:{int(time.time())+300}:t> <t:{int(time.time())+300}:R>")
-            await asyncio.sleep(300)
-            await ia.response.send_message(f"Round roughly ends at <t:{int(time.time())+2400}:t> <t:{int(time.time())+2700}:R>")
+            await ia.response.send_message(f"Round roughly ends at <t:{int(time.time())+2700}:t> <t:{int(time.time())+2700}:R>")
 client.run(token)
