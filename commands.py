@@ -403,6 +403,7 @@ async def deactivate_tournament(ia):
     db.commit()
     return await ia.response.send_message(f"The tournament has been deactivated.", ephemeral=True)
 
+@command("tournament_pairings", "Get the pairings for the current cobra tournament", "everyone")
 async def tournament_pairings(ia):
     cursor.execute("SELECT tournament_id FROM cobra_tournaments WHERE channel_id=?", (ia.channel_id,))
     row = cursor.fetchone()
