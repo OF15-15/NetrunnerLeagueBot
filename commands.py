@@ -447,8 +447,10 @@ def get_player(ia, players=None, player_id=None, player_name="not found"):
 
 
 
-@command("remove_tournament", "Remove a cobra tournament", "admin")
-async def remove_tournament(ia):
+@command("remove_tournaments", "Remove all cobra tournament in this channel", "admin")
+async def remove_tournaments(ia):
     cursor.execute('''DELETE FROM cobra_tournaments WHERE channel_id=?''', (ia.channel_id, ))
     db.commit()
-    return await ia.response.send_message("You removed all tournaments in this channel", ephemeral=True)
+    n = cursor.rowcount
+    msg = f"Removed {n} tournament(s) from this channel." if n else "No tournaments in this channel."
+    return await ia.response.send_message(msg, ephemeral=True)
