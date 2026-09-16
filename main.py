@@ -98,6 +98,8 @@ async def tournament_watcher():
             db.commit()
             await ia.response.send_message(f"Round {data['preliminaryRounds']} is paired here:\nhttps://tournaments.nullsignal.games/tournaments/{tournament_id}/rounds")
             await commands.tournament_pairings(ia)
-            await ia.response.send_message(f"Round roughly starts at <t:{int(time.time())+300}:t> <t:{int(time.time())+300}:R>")
-            await ia.response.send_message(f"Round roughly ends at <t:{int(time.time())+2700}:t> <t:{int(time.time())+2700}:R>")
+            delay = 150
+            if channel_id == 1549829759133946057 and data["preliminaryRounds"] in {1, 2, 4, 7}: delay = 300
+            await ia.response.send_message(f"Round roughly starts at <t:{int(time.time())+delay}:t> <t:{int(time.time())+delay}:R>")
+            await ia.response.send_message(f"Round roughly ends at <t:{int(time.time())+2400+delay}:t> <t:{int(time.time())+2400+delay}:R>")
 client.run(token)
