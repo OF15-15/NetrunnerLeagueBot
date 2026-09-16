@@ -1,3 +1,4 @@
+import asyncio
 import time
 import ia_standin
 import discord
@@ -91,10 +92,12 @@ async def tournament_watcher():
             raw_data = await session.get(url)
         data = await raw_data.json()
         if data["preliminaryRounds"] > round:
-            ia = ia_standin.Interaction(guild_id, channel_id, user_id, client)
+            ia = ia_standin.Interaction(guild_id, channel_id, user_id, client, True)
             cursor.execute('''UPDATE cobra_tournaments SET round=? WHERE tournament_id=?''', (data["preliminaryRounds"], tournament_id))
             db.commit()
             await ia.response.send_message(f"Round {data['preliminaryRounds']} is paired here:\nhttps://tournaments.nullsignal.games/tournaments/{tournament_id}/rounds")
-
-
+            await commands.tournament_pairings(ia)
+            await ia.response.send_message(f"Round roughly starts at <t:{int(time.time())+300}:t> <t:{int(time.time())+300}:R>")
+            await asyncio.sleep(300)
+            await ia.response.send_message(f"Round roughly ends at <t:{int(time.time())+2700}:t> <t:{int(time.time())+2700}:R>")
 client.run(token)

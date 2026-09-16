@@ -1,7 +1,7 @@
 import discord
 
 class Interaction:
-    def __init__(self, guild_id, channel_id, user_id, client):
+    def __init__(self, guild_id, channel_id, user_id, client, ephemeral=False):
         self.guild_id = guild_id
         self.channel_id = channel_id
         self.user_id = user_id
@@ -9,6 +9,7 @@ class Interaction:
         self.channel = self.guild.get_channel(channel_id)
         self.user = self.guild.get_member(user_id)
         self.response = Messenger(self)
+        self.ephemeral = ephemeral
 
 class Messenger:
     def __init__(self, ia):
@@ -16,4 +17,4 @@ class Messenger:
     async def send_message(self, message, ephemeral=False, **kwargs):
         if not message:
             message = "some error"
-        await self.ia.channel.send(content=message, silent=ephemeral, **kwargs)
+        await self.ia.channel.send(content=message, silent=ephemeral or self.ia.ephemeral, **kwargs)
