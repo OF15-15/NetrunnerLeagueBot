@@ -93,7 +93,7 @@ async def tournament_watcher():
         data = await raw_data.json()
         if data["preliminaryRounds"] > round:
             ia = ia_standin.Interaction(guild_id, channel_id, user_id, client, True)
-            cursor.execute('''UPDATE cobra_tournaments SET round=? WHERE tournament_id=? and channel_id=?''', (data["preliminaryRounds"], tournament_id, channel_id))
+            cursor.execute('''UPDATE cobra_tournaments SET round=? WHERE tournament_id=? AND channel_id=?''', (data["preliminaryRounds"], tournament_id, channel_id))
             db.commit()
             await ia.response.send_message(f"Round {data['preliminaryRounds']} is paired here:\nhttps://tournaments.nullsignal.games/tournaments/{tournament_id}/rounds")
             await commands.tournament_pairings(ia)

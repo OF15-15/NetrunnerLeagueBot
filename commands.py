@@ -432,7 +432,7 @@ async def tournament_standings(ia):
     data = await raw_data.json()
     msg = '`Pos|Pts|   SoS|  ESoS` - Username\n'
     for player in data['players']:
-        msg += f"`{str(player['rank']):>3}|{str(player['matchPoints']):>3}|{(player['strengthOfSchedule']):>6}|{(player['extendedStrengthOfSchedule']):>6}` - {get_player(ia, player_name=player['name'])}\n"
+        msg += f"`{str(player['rank']):>3}|{str(player['matchPoints']):>3}|{(player['strengthOfSchedule']):>6.6}|{(player['extendedStrengthOfSchedule']):>6.6}` - {get_player(ia, player_name=player['name'])}\n"
     return await ia.response.send_message(msg, ephemeral=True)
 
 def get_player(ia, players=None, player_id=None, player_name="not found"):
