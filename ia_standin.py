@@ -9,6 +9,7 @@ class Interaction:
         self.channel = self.guild.get_channel(channel_id)
         self.user = self.guild.get_member(user_id)
         self.response = Messenger(self)
+        self.followup = Messenger(self)
         self.ephemeral = ephemeral
 
 class Messenger:
@@ -18,3 +19,4 @@ class Messenger:
         if not message:
             message = "some error"
         await self.ia.channel.send(content=message, silent=ephemeral or self.ia.ephemeral, **kwargs)
+    async def send(self, *args, **kwargs): await self.send_message(*args, **kwargs)

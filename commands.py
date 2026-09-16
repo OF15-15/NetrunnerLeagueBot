@@ -403,21 +403,40 @@ async def deactivate_tournament(ia):
     db.commit()
     return await ia.response.send_message(f"The tournament has been deactivated.", ephemeral=True)
 
-@command("tournament_pairings", "Get the pairings for the current cobra tournament", "everyone")
 async def tournament_pairings(ia):
-    cursor.execute('''SELECT tournament_id, round FROM cobra_tournaments WHERE channel_id=?''', (ia.channel_id, ))
-    tournaments = cursor.fetchall()
-    if len(tournaments) == 0:
-        return await ia.response.send_message(f"There is no cobra tournament set up for this channel.", ephemeral=True)
-    tournament_id = tournaments[0][0]
-    url = f"https://tournaments.nullsignal.games/tournaments/{tournament_id}.json"
+    cursor.execute("SELECT tournament_id FROM cobra_tournaments WHERE channel_id=?", (ia.channel_id,))
+    row = cursor.fetchone()
+    if row is None:
+        return await ia.response.send_message("There is no cobra tournament set up for this channel.", ephemeral=True)
+
+    await ia.response.defer(ephemeral=True)
+
+    url = f"https://tournaments.nullsignal.games/tournaments/{row[0]}.json"
     async with aiohttp.ClientSession() as session:
-        raw_data = await session.get(url)
-    data = await raw_data.json()
-    msg = ''
-    for pairing in data['rounds'][-1]:
-        msg += f"`{pairing['table']}:` {get_player(ia, data['players'], pairing['player2']['id'])} - {get_player(ia, data['players'], pairing['player1']['id'])}\n"
-    return await ia.response.send_message(msg, ephemeral=True)
+        async with session.get(url) as resp:
+            resp.raise_for_status()
+            data = await resp.json()
+
+    if not data.get("rounds"):
+        return await ia.followup.send("No pairings yet.", ephemeral=True)
+
+    msg = ""
+    for pairing in data["rounds"][-1]:
+        names = []
+        for key in ("player2", "player1"):
+            p = pairing.get(key)
+            if not p or p.get("id") is None:
+                names.append("*Bye*")
+            else:
+                names.append(get_player(ia, data["players"], p["id"]))
+        line = f"`{pairing['table']}:` {names[0]} - {names[1]}\n"
+
+        if len(msg) + len(line) > 2000:
+            await ia.followup.send(msg, ephemeral=True)
+            msg = ""
+        msg += line
+
+    return await ia.followup.send(msg, ephemeral=True)
 
 @command("tournament_standings", "Get the standings for the current cobra tournament", "everyone")
 async def tournament_standings(ia):
