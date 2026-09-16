@@ -87,6 +87,7 @@ async def tournament_watcher():
     cursor.execute('''SELECT tournament_id, channel_id, guild_id, round FROM cobra_tournaments WHERE active_until>?''', (time.time(),))
     for tournament in cursor.fetchall():
         tournament_id, channel_id, guild_id, round = tournament
+        print(f"tournament id {tournament_id}")
         url = f"https://tournaments.nullsignal.games/tournaments/{tournament_id}.json"
         async with aiohttp.ClientSession() as session:
             raw_data = await session.get(url)
