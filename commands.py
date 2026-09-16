@@ -397,6 +397,12 @@ async def activate_tournament(ia):
     db.commit()
     return await ia.response.send_message(f"The tournament is active until at least <t:{round(time.time())+7200}:t>.", ephemeral=True)
 
+@command("deactivate_tournament", "Deactivate a tournament", "admin")
+async def deactivate_tournament(ia):
+    cursor.execute('''UPDATE cobra_tournaments SET active_until=? WHERE channel_id=?''', (round(time.time()-60), ia.channel.id))
+    db.commit()
+    return await ia.response.send_message(f"The tournament has been deactivated.", ephemeral=True)
+
 @command("tournament_pairings", "Get the pairings for the current cobra tournament", "everyone")
 async def tournament_pairings(ia):
     cursor.execute('''SELECT tournament_id, round FROM cobra_tournaments WHERE channel_id=?''', (ia.channel_id, ))
