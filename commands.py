@@ -421,19 +421,39 @@ async def tournament_pairings(ia):
 
 @command("tournament_standings", "Get the standings for the current cobra tournament", "everyone")
 async def tournament_standings(ia):
-    cursor.execute('''SELECT tournament_id, round FROM cobra_tournaments WHERE channel_id=?''', (ia.channel_id, ))
-    tournaments = cursor.fetchall()
-    if len(tournaments) == 0:
-        return await ia.response.send_message(f"There is no cobra tournament set up for this channel.", ephemeral=True)
-    tournament_id = tournaments[0][0]
-    url = f"https://tournaments.nullsignal.games/tournaments/{tournament_id}.json"
+    cursor.execute("SELECT tournament_id, round FROM cobra_tournaments WHERE channel_id=?", (ia.channel_id,))
+    row = cursor.fetchone()
+    if row is None:
+        return await ia.response.send_message("There is no cobra tournament set up for this channel.", ephemeral=True)
+
+    await ia.response.defer(ephemeral=True)
+
+    url = f"https://tournaments.nullsignal.games/tournaments/{row[0]}.json"
     async with aiohttp.ClientSession() as session:
-        raw_data = await session.get(url)
-    data = await raw_data.json()
-    msg = '`Pos|Pts|   SoS|  ESoS` - Username\n'
-    for player in data['players']:
-        msg += f"`{str(player['rank']):>3}|{str(player['matchPoints']):>3}|{(player['strengthOfSchedule']):>6.6}|{(player['extendedStrengthOfSchedule']):>6.6}` - {get_player(ia, player_name=player['name'])}\n"
-    return await ia.response.send_message(msg, ephemeral=True)
+        async with session.get(url) as resp:
+            resp.raise_for_status()
+            data = await resp.json()
+
+    lines = ["`Pos|Pts|   SoS|  ESoS` - Username"]
+    for p in data["players"]:
+        lines.append(
+            f"`{str(p['rank']):>3.3}|{str(p['matchPoints']):>3.3}"
+            f"|{p['strengthOfSchedule']:>6.3f}|{p['extendedStrengthOfSchedule']:>6.3f}`"
+            f" - {get_player(ia, player_name=p['name'])}"
+        )
+
+    chunks, current = [], ""
+    for line in lines:
+        if len(current) + len(line) + 1 > 2000:
+            chunks.append(current)
+            current = ""
+        current += line + "\n"
+    chunks.append(current)
+
+    for chunk in chunks:
+        await ia.followup.send(chunk, ephemeral=True)
+    return None
+
 
 def get_player(ia, players=None, player_id=None, player_name="not found"):
     if players is not None and player_id is not None:
