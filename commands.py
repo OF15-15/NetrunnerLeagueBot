@@ -497,6 +497,7 @@ async def remove_tournaments(ia):
 
 @command("extension", "give an extension", "admin")
 async def extension(ia, table: int, duration: int):
+    duration = duration*60
     cursor.execute('''SELECT end_time, player1, player2 FROM game_timers WHERE tournament_id=?''', (table,))
     db.commit()
     row = cursor.fetchone()
