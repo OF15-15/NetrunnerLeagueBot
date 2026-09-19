@@ -494,3 +494,43 @@ async def remove_tournaments(ia):
     n = cursor.rowcount
     msg = f"Removed {n} tournament(s) from this channel." if n else "No tournaments in this channel."
     return await ia.response.send_message(msg, ephemeral=True)
+
+@command("extension", "give an extension", "admin")
+async def extension(ia, table, duration):
+    cursor.execute('''SELECT endtime, player1, player2 FROM game_timers WHERE tournament_id=?''', (table,))
+    row = cursor.fetchone()
+    if row is None:
+        return await ia.response.send_message(f"No game found for table {table}.", ephemeral=True)
+    cursor.execute('''UPDATE game_timers SET endtime=? WHERE table=?''', (row[0]+duration, table))
+    return await ia.response.send_message(f"Extension table {table}: {row[1]} - {row2} - new endtime <t:{row[0]+duration}:t> <t:{row[0]+duration}:R>")
+
+@command("fix_game_ends", "fix game ends", "admin")
+async def fix_game_ends(ia, end_time):
+    cursor.execute("SELECT tournament_id, round FROM cobra_tournaments WHERE channel_id=?", (ia.channel_id,))
+    row = cursor.fetchone()
+    if row is None:
+        return await ia.response.send_message("There is no cobra tournament set up for this channel.", ephemeral=True)
+
+
+
+    url = f"https://tournaments.nullsignal.games/tournaments/{row[0]}.json"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            resp.raise_for_status()
+            data = await resp.json()
+
+
+    cursor.execute('''DELETE FROM game_timers''')
+    db.commit()
+    for pairing in data["rounds"][-1]:
+        players = []
+        for key in ("player2", "player1"):
+            p = pairing.get(key)
+            if not p or p.get("id") is None:
+                pass
+            else:
+                players.append(get_player(ia, data["players"], p["id"]))
+        cursor.execute("INSERT INTO game_timers (player1, player2, table, round, end_time) VALUES (?, ?, ?, ?, ?)",
+                       (players[0], players[1], pairing["table"], row[1], end_time))
+    db.commit()
+    return await ia.response.send_message("worked :)", ephemeral=True)

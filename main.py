@@ -100,6 +100,39 @@ async def tournament_watcher():
             await commands.tournament_pairings(ia)
             delay = 150
             if channel_id == 1549829759133946057 and data["preliminaryRounds"] in {1, 2, 4, 7}: delay = 300
+            end_time = int(time.time() + 2400 + delay)
             await ia.response.send_message(f"Round roughly starts at <t:{int(time.time())+delay}:t> <t:{int(time.time())+delay}:R>")
-            await ia.response.send_message(f"Round roughly ends at <t:{int(time.time())+2400+delay}:t> <t:{int(time.time())+2400+delay}:R>")
+            await ia.response.send_message(f"Round roughly ends at <t:{end_time}:t> <t:{end_time}:R>")
+
+
+            cursor.execute('''DELETE FROM game_timers''')
+            db.commit()
+            for pairing in data["rounds"][-1]:
+                players = []
+                for key in ("player2", "player1"):
+                    p = pairing.get(key)
+                    if not p or p.get("id") is None:
+                        pass
+                    else:
+                        players.append(commands.get_player(ia, data["players"], p["id"]))
+                cursor.execute("INSERT INTO game_timers (player1, player2, table, round, end_time) VALUES (?, ?, ?, ?, ?)", (players[0], players[1], pairing["table"], round, end_time))
+            db.commit()
+
+@tasks.loop(seconds=2)
+async def game_time_watcher():
+    cursor.execute('''SELECT player1, player2, tournament_id, round, end_time FROM game_timers WHERE end_time<?''', (time.time(),))
+    cursor.execute('''DELETE FROM game_timers WHERE end_time<?''', (time.time(),))
+    db.commit()
+    chunks = ["The following games have ended:\nplayer1 - player2 - end-time\n"]
+    ia = ia_standin.Interaction(372121348300079106, 1549829759133946057, user_id, client)
+    for game in cursor.fetchall():
+        player1, player2, table, round, end_time = game
+        msg = f"{player1} - {player2} - {end_time}\n"
+        if len(chunks[-1]) + len(msg) < 2000:
+            chunks[-1] += msg
+        else:
+            chunks.append(msg)
+    for chunk in chunks:
+        ia.followup.send(chunk)
+
 client.run(token)
