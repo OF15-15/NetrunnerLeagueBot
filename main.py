@@ -115,7 +115,7 @@ async def tournament_watcher():
                         pass
                     else:
                         players.append(commands.get_player(ia, data["players"], p["id"]))
-                cursor.execute("INSERT INTO game_timers (player1, player2, table, round, end_time) VALUES (?, ?, ?, ?, ?)", (players[0], players[1], pairing["table"], round, end_time))
+                cursor.execute("INSERT INTO game_timers (player1, player2, tournament_id, round, end_time) VALUES (?, ?, ?, ?, ?)", (players[0], players[1], pairing["table"], round, end_time))
             db.commit()
 
 @tasks.loop(seconds=2)

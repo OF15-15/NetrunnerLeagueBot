@@ -530,7 +530,7 @@ async def fix_game_ends(ia, end_time):
                 pass
             else:
                 players.append(get_player(ia, data["players"], p["id"]))
-        cursor.execute("INSERT INTO game_timers (player1, player2, table, round, end_time) VALUES (?, ?, ?, ?, ?)",
+        cursor.execute("INSERT INTO game_timers (player1, player2, tournament_id, round, end_time) VALUES (?, ?, ?, ?, ?)",
                        (players[0], players[1], pairing["table"], row[1], end_time))
     db.commit()
     return await ia.response.send_message("worked :)", ephemeral=True)
