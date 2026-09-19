@@ -37,6 +37,7 @@ for cmd in commands.command_list:
     tree.add_command(cmd, guilds=[discord.Object(id=g) for g in guild_ids])
 
 
+
 @client.event
 async def on_ready():
     for guild_id in guild_ids:
@@ -78,6 +79,7 @@ async def messenger():
     if len(cursor.fetchall()) > 0:
         if not tournament_watcher.is_running(): tournament_watcher.start()
         if not game_time_watcher.is_running(): game_time_watcher.start()
+        if not clear_completed_games.is_running(): clear_completed_games.start()
         print("tournament watcher active")
     else:
         print("tournament watcher not active")
