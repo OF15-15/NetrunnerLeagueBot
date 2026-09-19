@@ -77,9 +77,9 @@ async def messenger():
     cursor.execute('''SELECT tournament_id FROM cobra_tournaments WHERE active_until>?''', (time.time(),))
     if len(cursor.fetchall()) > 0:
         if not tournament_watcher.is_running(): tournament_watcher.start()
+        if not game_time_watcher.is_running(): game_time_watcher.start()
         print("tournament watcher active")
     else:
-        tournament_watcher.stop()
         print("tournament watcher not active")
 
 @tasks.loop(seconds=10)
