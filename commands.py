@@ -537,3 +537,5 @@ async def fix_game_ends(ia, end_time: int):
                        (players[0], players[1], pairing["table"], row[1], end_time))
     db.commit()
     return await ia.response.send_message("worked :)", ephemeral=True)
+
+@command(timer, )
