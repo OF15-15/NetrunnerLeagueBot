@@ -120,8 +120,8 @@ async def tournament_watcher():
 
 @tasks.loop(seconds=2)
 async def game_time_watcher():
-    cursor.execute('''SELECT player1, player2, tournament_id, round, end_time FROM game_timers WHERE end_time<?''', (time.time(),))
-    cursor.execute('''DELETE FROM game_timers WHERE end_time<?''', (time.time(),))
+    cursor.execute('''SELECT player1, player2, tournament_id, round, end_time FROM game_timers WHERE end_time<?''', (int(time.time()),))
+    cursor.execute('''DELETE FROM game_timers WHERE end_time<?''', (int(time.time()),))
     db.commit()
     chunks = ["The following games have ended:\nplayer1 - player2 - end-time\n"]
     ia = ia_standin.Interaction(372121348300079106, 1549829759133946057, user_id, client)
