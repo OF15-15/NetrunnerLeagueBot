@@ -498,10 +498,12 @@ async def remove_tournaments(ia):
 @command("extension", "give an extension", "admin")
 async def extension(ia, table, duration):
     cursor.execute('''SELECT endtime, player1, player2 FROM game_timers WHERE tournament_id=?''', (table,))
+    db.commit()
     row = cursor.fetchone()
     if row is None:
         return await ia.response.send_message(f"No game found for table {table}.", ephemeral=True)
-    cursor.execute('''UPDATE game_timers SET endtime=? WHERE table=?''', (row[0]+duration, table))
+    cursor.execute('''UPDATE game_timers SET endtime=? WHERE tournament_id=?''', (row[0]+duration, table))
+    db.commit()
     return await ia.response.send_message(f"Extension table {table}: {row[1]} - {row2} - new endtime <t:{row[0]+duration}:t> <t:{row[0]+duration}:R>")
 
 @command("fix_game_ends", "fix game ends", "admin")
