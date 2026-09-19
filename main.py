@@ -123,9 +123,11 @@ async def game_time_watcher():
     cursor.execute('''SELECT player1, player2, tournament_id, round, end_time FROM game_timers WHERE end_time<?''', (int(time.time()),))
     cursor.execute('''DELETE FROM game_timers WHERE end_time<?''', (int(time.time()),))
     db.commit()
+    results = cursor.fetchall()
+    if len(results) == 0: return None
     chunks = ["The following games have ended:\nplayer1 - player2 - end-time\n"]
     ia = ia_standin.Interaction(372121348300079106, 1549829759133946057, user_id, client)
-    for game in cursor.fetchall():
+    for game in results:
         player1, player2, table, round, end_time = game
         msg = f"{player1} - {player2} - {end_time}\n"
         if len(chunks[-1]) + len(msg) < 2000:
