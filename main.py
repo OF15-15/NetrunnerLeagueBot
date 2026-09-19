@@ -137,4 +137,17 @@ async def game_time_watcher():
     for chunk in chunks:
         await ia.followup.send(chunk)
 
+@tasks.loop(seconds=60)
+async def clear_completed_games():
+    url = f"https://tournaments.nullsignal.games/tournaments/{4990}.json"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            resp.raise_for_status()
+            data = await resp.json()
+    db.commit()
+    for pairing in data["rounds"][-1]:
+        if pairing["player1"]["combinedScore"] is not None:
+            cursor.execute("DELETE FROM game_timers WHERE tournament_id=?", (pairing["table"],))
+    db.commit()
+
 client.run(token)
