@@ -133,6 +133,6 @@ async def game_time_watcher():
         else:
             chunks.append(msg)
     for chunk in chunks:
-        ia.followup.send(chunk)
+        await ia.followup.send(chunk)
 
 client.run(token)
