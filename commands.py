@@ -504,7 +504,7 @@ async def extension(ia, table: int, duration: int):
         return await ia.response.send_message(f"No game found for table {table}.", ephemeral=True)
     cursor.execute('''UPDATE game_timers SET end_time=? WHERE tournament_id=?''', (row[0]+duration, table))
     db.commit()
-    return await ia.response.send_message(f"Extension table {table}: {row[1]} - {row2} - new endtime <t:{row[0]+duration}:t> <t:{row[0]+duration}:R>")
+    return await ia.response.send_message(f"Extension table {table}: {row[1]} - {row[2]} - new endtime <t:{row[0]+duration}:t> <t:{row[0]+duration}:R>")
 
 @command("fix_game_ends", "fix game ends", "admin")
 async def fix_game_ends(ia, end_time: int):
