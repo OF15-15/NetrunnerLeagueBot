@@ -102,7 +102,7 @@ async def tournament_watcher():
             if channel_id == 1549829759133946057 and data["preliminaryRounds"] in {1, 2, 4, 7}: delay = 300
             end_time = int(time.time() + 2400 + delay)
             await ia.response.send_message(f"Round roughly starts at <t:{int(time.time())+delay}:t> <t:{int(time.time())+delay}:R>")
-            await ia.response.send_message(f"Round roughly ends at <t:{end_time}:t> <t:{end_time}:R>")
+            await ia.response.send_message(f"# Round roughly ends at <t:{end_time}:t> <t:{end_time}:R>")
 
 
             cursor.execute('''DELETE FROM game_timers''')
